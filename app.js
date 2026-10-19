@@ -1,0 +1,12 @@
+const € = new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const num = new Intl.NumberFormat('it-IT',{maximumFractionDigits:0});
+const pct = value => value.toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const $ = id => document.getElementById(id);
+const controls = {visitors:$('visitors'),conversion:$('conversion'),target:$('target'),order:$('order')};
+function values(){return {visitors:Number(controls.visitors.value),conversion:Number(controls.conversion.value),target:Number(controls.target.value),order:Number(controls.order.value)}}
+function calculate(){const v=values();const currentOrders=v.visitors*v.conversion/100;const targetOrders=v.visitors*v.target/100;const uplift=Math.max(0,(targetOrders-currentOrders)*v.order);const revenue=currentOrders*v.order;const aovPotential=revenue*.0333;const cartPotential=revenue*.0222;const conversionPotential=uplift;return {v,revenue,uplift,conversionPotential,aovPotential,cartPotential,total:conversionPotential+aovPotential+cartPotential}}
+function render(){const d=calculate();$('visitorsOut').textContent=num.format(d.v.visitors);$('conversionOut').textContent=pct(d.v.conversion);$('targetOut').textContent=pct(d.v.target);$('orderOut').textContent=€ .format(d.v.order);$('revenue').textContent=€ .format(d.revenue);$('cr').innerHTML=d.v.conversion.toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})+'<span class="unit">%</span>';$('aov').textContent=€ .format(d.v.order);$('opportunity').textContent=€ .format(d.total);$('convOpportunity').innerHTML='+ '+€ .format(d.conversionPotential)+'<small>/ mese</small>';$('aovOpportunity').innerHTML='+ '+€ .format(d.aovPotential)+'<small>/ mese</small>';$('cartOpportunity').innerHTML='+ '+€ .format(d.cartPotential)+'<small>/ mese</small>';$('simResult').textContent='+ '+€ .format(d.uplift);controls.target.min=controls.conversion.value;controls.target.setAttribute('aria-valuetext',pct(d.v.target));}
+Object.values(controls).forEach(el=>el.addEventListener('input',render));
+$('applyBtn').addEventListener('click',()=>{render();$('opportunities').scrollIntoView({behavior:'smooth',block:'start'});$('applyBtn').innerHTML='Analisi aggiornata ✓';setTimeout(()=>$('applyBtn').innerHTML='Aggiorna analisi <span>→</span>',1600)});
+$('resetBtn').addEventListener('click',()=>{controls.visitors.value=36000;controls.conversion.value=1.8;controls.target.value=2.4;controls.order.value=75;render();window.scrollTo({top:0,behavior:'smooth'})});
+render();
